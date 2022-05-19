@@ -1,9 +1,6 @@
 package org.sid.ebancbackend;
 
-import org.sid.ebancbackend.entities.AccountOperation;
-import org.sid.ebancbackend.entities.CurrentAccount;
-import org.sid.ebancbackend.entities.Customer;
-import org.sid.ebancbackend.entities.SavingAccount;
+import org.sid.ebancbackend.entities.*;
 import org.sid.ebancbackend.enums.AccountStatus;
 import org.sid.ebancbackend.enums.OperationType;
 import org.sid.ebancbackend.repositories.AccountOperationRepository;
@@ -14,7 +11,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableMBeanExport;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.beans.Transient;
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -25,7 +24,36 @@ public class    EbancBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(EbancBackendApplication.class, args);
     }
-    @Bean
+
+@Bean
+@Transactional
+    CommandLineRunner commandLineRunner(BankAccountRepository bankAccountRepository){
+return args -> {
+
+    BankAccount bankAccount = bankAccountRepository.findById("119a36d0-a121-4c9e-b7e5-246f78e246ba").orElse(null);
+    if (bankAccount!=null) {
+        System.out.println("************");
+        System.out.println(bankAccount.getId());
+        System.out.println(bankAccount.getBalance());
+        System.out.println(bankAccount.getStatus());
+        System.out.println(bankAccount.getCreatedAt());
+        System.out.println(bankAccount.getCustomer().getName());
+        System.out.println(bankAccount.getClass().getSimpleName());
+        if (bankAccount instanceof CurrentAccount) {
+            System.out.println("Over Draft=> " + ((CurrentAccount) bankAccount).getOverDraft());
+        } else if (bankAccount instanceof SavingAccount) {
+            System.out.println("Rate" + ((SavingAccount) bankAccount).getInterestRate());
+        }
+        bankAccount.getAccountOperations().forEach(op -> {
+
+            System.out.println(op.getType() + "\t" + op.getAmount() + "\t" + op.getOperationDate());
+
+        });
+    }
+};
+    }
+
+    //@Bean
     CommandLineRunner Start(CustomerRepository customerRepository,
                             BankAccountRepository bankAccountRepository,
                             AccountOperationRepository accountOperationRepository) {
@@ -71,7 +99,10 @@ public class    EbancBackendApplication {
 
                 }
 
+
+
             });
+
         };
     }
 
